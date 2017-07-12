@@ -93,7 +93,7 @@ _aloca_matrix:
 	ret
 
 _le_dados:
-
+	pushl $0, %esp
 
 _print_matrix:
 
