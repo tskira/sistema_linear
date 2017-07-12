@@ -11,6 +11,7 @@
 .section .data
 
 titulo: .asciz "\n ### A RUA E NOIS ###\n"
+pededados: .asciz "\nEntre com a equacao do tipo Ax + By + Cz = D\n\tNo formato A B C D\n"
 
 formatoint: .asciz "\n%d\n"
 naloc: .int 0
@@ -21,20 +22,35 @@ tam_matrix: .int 12
 .globl main
 
 main:
-								# Calculando o tamanho da matrix a ser alocada:
-								#
-	pushl tam_matrix			#	passa o primeiro parametro de _cacula_tamanho
-	call _calcula_tamanho 		# 	chama a funcao
-	addl $4, %esp				#	limpa a pilha
-	movl %eax, naloc			#	coloca o valor calculado na variavel naloc
 
-								# Alocando o vetor a ser utilizado como matrix
-								# para armazenar os coeficientes do sistema:
-								#
-	pushl naloc					# passa o primeiro parametro
-	call _aloca_matrix			# chama a funcao
-	addl $4, %esp				# limpa a pilha
-	movl %eax, ptr_matrix		# salva o espaco alocado no ponteiro ptr_matrix
+	pushl $titulo
+	call printf
+	addl $4, %esp
+
+	# Calculando o tamanho da matrix a ser alocada:
+	#
+	#	passa o primeiro parametro de _cacula_tamanho
+	# 	chama a funcao
+	#	limpa a pilha
+	#	coloca o valor calculado na variavel naloc
+	#
+	pushl tam_matrix
+	call _calcula_tamanho
+	addl $4, %esp
+	movl %eax, naloc
+
+	# Alocando o vetor a ser utilizado como matrix
+	# para armazenar os coeficientes do sistema:
+	#
+	# passa o primeiro parametro
+	# chama a funcao
+	# limpa a pilha
+	# salva o espaco alocado no ponteiro ptr_matrix
+	#
+	pushl naloc
+	call _aloca_matrix
+	addl $4, %esp
+	movl %eax, ptr_matrix
 
 	jmp _fim
 
@@ -75,6 +91,9 @@ _aloca_matrix:
 	addl $4, %esp
 	popl %ebp
 	ret
+
+_le_dados:
+
 
 _print_matrix:
 
