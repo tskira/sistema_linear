@@ -4,8 +4,6 @@
 #	ALUNOS: THIAGO KIRA
 #  			CHEROSO MARINGA
 #
-#	TESTE
-#
 # 	"Na escuridao o teu olhar me iluminava
 # 	 E minha estrela guia era o teu riso"
 #
@@ -95,7 +93,7 @@ _aloca_matrix:
 	ret
 
 _le_dados:
-	pushl $0, %esp
+
 
 _print_matrix:
 
