@@ -13,9 +13,10 @@
 .section .data
 
 titulo: .asciz "\n ### A RUA E NOIS ###\n"
-pededados: .asciz "\nEntre com a equacao do tipo Ax + By + Cz = D\n\tNo formato A B C D\n"
+pede_dados: .asciz "\nEntre com a equacao do tipo Ax + By + Cz = D\n\tNo formato A B C D\n"
 
-formatoint: .asciz "\n%d\n"
+formatoint: .asciz "\n%d"
+pulalinha: .asciz "\n"
 naloc: .int 0
 ptr_matrix: .int 0
 tam_matrix: .int 12
@@ -30,12 +31,7 @@ main:
 	addl $4, %esp
 
 	# Calculando o tamanho da matrix a ser alocada:
-	#
-	#	passa o primeiro parametro de _cacula_tamanho
-	# 	chama a funcao
-	#	limpa a pilha
-	#	coloca o valor calculado na variavel naloc
-	#
+
 	pushl tam_matrix
 	call _calcula_tamanho
 	addl $4, %esp
@@ -43,16 +39,21 @@ main:
 
 	# Alocando o vetor a ser utilizado como matrix
 	# para armazenar os coeficientes do sistema:
-	#
-	# passa o primeiro parametro
-	# chama a funcao
-	# limpa a pilha
-	# salva o espaco alocado no ponteiro ptr_matrix
-	#
+
 	pushl naloc
 	call _aloca_matrix
 	addl $4, %esp
 	movl %eax, ptr_matrix
+
+	# Inserir valores na matrix
+ 	call _le_dados
+
+	# Exibe matrix
+	pushl tam_matrix
+	call _print_matrix
+	pushl $pulalinha
+	call printf
+	addl $8, %esp
 
 	jmp _fim
 
@@ -95,10 +96,51 @@ _aloca_matrix:
 	ret
 
 _le_dados:
-	pushl $0, %esp
+	pushl %ebp
+	movl %esp, %ebp
+	pushl $pede_dados
+	call printf
+	addl $4, %esp
+	movl ptr_matrix, %edi
+	movl tam_matrix, %ecx
+	jmp _coloca_na_matrix
 
+_coloca_na_matrix:
+	pushl %ecx
+	pushl %edi
+	pushl $formatoint
+	call scanf
+	addl $8, %esp
+	addl $4, %edi
+	popl %ecx
+	loop _coloca_na_matrix
+	popl %ebp
+	ret
+
+#
+# Procedimento para imprimir a matrix
+#
+# @param:
+# tamanho da matrix
+#
 _print_matrix:
+	pushl %ebp
+	movl %esp, %ebp
+	movl 8(%ebp), %ecx
+	movl ptr_matrix, %edi
+	jmp _exibe_valores
 
+_exibe_valores:
+	pushl %ecx
+	pushl (%edi)
+	pushl $formatoint
+	call printf
+	addl $4, %edi
+	addl $8, %esp
+	popl %ecx
+	loop _exibe_valores
+	popl %ebp
+	ret
 
 _fim:
 	pushl $0
