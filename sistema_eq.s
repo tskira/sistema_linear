@@ -27,6 +27,9 @@ ptr_matrix_aux: .int 0
 matrix_aux: .int 0
 tam_matrix: .int 12
 int_aux: .int 0
+coef_14: .int 0
+coef_24: .int 0
+coef_34: .int 0
 
 .section .text
 .globl main
@@ -57,19 +60,13 @@ main:
 	addl $4, %esp
 	movl %eax, matrix_aux
 	movl $matrix_aux, %eax
-	movl %eax, ptr_matrix_aux #ponteiro para a matrix 
+	movl %eax, ptr_matrix_aux #ponteiro para a matrix
 
 	# Inserir valores na matrix
 	pushl ptr_matrix
  	call _le_dados
 	addl $4, %esp
 
-	# Exibe matrix
-	pushl ptr_matrix
-	call _print_matrix
-	pushl $pulalinha
-	call printf
-	addl $8, %esp
 
 	# copia matrix original na auxiliar
 	pushl tam_matrix
@@ -78,13 +75,18 @@ main:
 	call _copiar_matrix
 	addl $12, %esp
 
-	#imprimir matrix copiada de zoa
+	#inverte coluna para x
+	pushl ptr_matrix_aux
+	pushl $0
+	call _inverte_coluna
+	addl $8, %esp
+
+	# Exibe matrix
 	pushl ptr_matrix_aux
 	call _print_matrix
 	pushl $pulalinha
 	call printf
 	addl $8, %esp
-
 
 
 	jmp _fim
@@ -210,6 +212,42 @@ _ciclo_copia:
 	popl %ebp
 	ret
 
+_inverte_coluna:
+	pushl %ebp
+	movl %esp, %ebp
+	movl 8(%ebp), %ebx
+	movl 12(%ebp), %edi
+
+	addl $12, %edi
+	movl (%edi), %eax
+	movl %eax, coef_14
+
+	addl $16, %edi
+	movl (%edi), %eax
+	movl %eax, coef_24
+
+	addl $16, %edi
+	movl (%edi), %eax
+	movl %eax, coef_34
+
+	subl $44, %edi
+
+	movl $4, %eax
+	mull %ebx
+	addl %eax, %edi
+	movl coef_14, %ebx
+	movl %ebx, (%edi)
+
+	addl $16, %edi
+	movl coef_24, %ebx
+	movl %ebx, (%edi)
+
+	addl $16, %edi
+	movl coef_34, %ebx
+	movl %ebx, (%edi)
+
+	popl %ebp
+	ret
 
 _fim:
 	pushl $0
