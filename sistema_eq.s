@@ -17,11 +17,12 @@ msg_exibe_matrix: .asciz "\n ### PRINTANDO MATRIX ### \n"
 msg_end_malloc: .asciz "\n ### ENDERECO ALOCADO: %d ### \n"
 msg_copia_matrix: .asciz "\n ### MATRIX COPIADA ### \n"
 msg_mostra_dets: .asciz "\n ### det: %d, dx: %d, dy: %d, dz: %d\n"
+msg_resp: .asciz "\n ### RESP: x = %d, y = %d, z = %d ### \n"
 pede_dados: .asciz "\nEntre com a equacao do tipo Ax + By + Cz = D\n\tNo formato A B C D\n"
-
+msg_zero: .asciz "\n ### DIVISAO POR ZERO ### \n"
 formatoint: .asciz "\n%d"
 formatocopia: .asciz "\n%d -> %d\n"
-teste: .asciz "\nENTRO\n"
+msg_continua: .asciz "\nDESEJA CONTINUAR? DISK 1 PARA SIM/ DISK 0 PARA NAO\n"
 pulalinha: .asciz "\n"
 
 .section .text
@@ -61,13 +62,6 @@ main:
 	addl $4, %esp
 	movl %eax, -28(%ebp)
 
-	########################## LE DADOS ###########################
-
-	# Inserir valores na matrix
-	pushl -28(%ebp)
-	call _le_dados
-	addl $4, %esp
-
 	########################## ALOCAR MATRIZ AUX 1 ###########################
 
 	# criar matrix auxiliar
@@ -75,6 +69,18 @@ main:
 	call _aloca_matrix
 	addl $4, %esp
 	movl %eax, -32(%ebp)
+
+_continua:
+
+	########################## LE DADOS ###########################
+
+	# Inserir valores na matrix
+	pushl -28(%ebp)
+	call _le_dados
+	addl $4, %esp
+
+
+	########################## COPIAR MATRIZ AUX 1 ###########################
 
 	# copia matrix original na auxiliar
 	pushl -4(%ebp)
@@ -111,6 +117,48 @@ main:
 	addl $4, %esp
 	movl %eax, -12(%ebp)
 
+	########################## REINICIA MATIX AUX ###########################
+
+	# copia matrix original na auxiliar
+	pushl -4(%ebp)
+	pushl -32(%ebp)
+	pushl -28(%ebp)
+	call _copiar_matrix
+	addl $12, %esp
+
+	########################## INVERTE COLUNA Y ###########################
+	pushl -32(%ebp)
+	pushl $1
+	call _inverte_coluna
+	addl $8, %esp
+
+	########################## CALCULA DY ###########################
+	pushl -32(%ebp)
+	call _detSarrus
+	addl $4, %esp
+	movl %eax, -16(%ebp)
+
+	########################## REINICIA MATIX AUX ###########################
+
+	# copia matrix original na auxiliar
+	pushl -4(%ebp)
+	pushl -32(%ebp)
+	pushl -28(%ebp)
+	call _copiar_matrix
+	addl $12, %esp
+
+	########################## INVERTE COLUNA Z ###########################
+	pushl -32(%ebp)
+	pushl $2
+	call _inverte_coluna
+	addl $8, %esp
+
+	########################## CALCULA DZ ###########################
+	pushl -32(%ebp)
+	call _detSarrus
+	addl $4, %esp
+	movl %eax, -20(%ebp)
+
 	pushl -20(%ebp)
 	pushl -16(%ebp)
 	pushl -12(%ebp)
@@ -119,7 +167,27 @@ main:
 	call printf
 	addl $20, %esp
 
-	jmp _fim
+	########################## CALCULA A RESP ###########################
+	pushl -8(%ebp)
+	pushl -12(%ebp)
+	pushl -16(%ebp)
+	pushl -20(%ebp)
+	call _calcula_resp
+	addl $20, %esp
+
+	########################## CONTINUA ###########################
+	pushl $msg_continua
+	call printf
+	addl $4, %esp
+
+	pushl -36(%ebp)
+	pushl $formatoint
+	call scanf
+	addl $8, %esp
+	movl -36(%ebp), %eax
+	cmpl $0, (%eax)
+	je	 _fim
+	jmp _continua
 
 #
 # Procedimento para calcular o tamanho do vetor a ser alocado
@@ -414,6 +482,51 @@ _detSarrus:
 	subl -52(%ebp), %eax
 
 	addl $88, %esp
+	popl %ebp
+	ret
+
+_calcula_resp:
+	pushl %ebp
+	movl %esp, %ebp
+	subl $16, %esp
+
+	movl 20(%ebp), %eax
+	cmpl $0, %eax
+	je _det_zero
+
+	movl 20(%ebp), %ebx
+	movl 16(%ebp), %eax
+	cdq
+	idivl %ebx
+	movl %eax, -4(%ebp)
+
+	movl 20(%ebp), %ebx
+	movl 12(%ebp), %eax
+	cdq
+	idivl %ebx
+	movl %eax, -8(%ebp)
+
+	movl 20(%ebp), %ebx
+	movl 8(%ebp), %eax
+	cdq
+	idivl %ebx
+	movl %eax, -12(%ebp)
+
+	pushl -12(%ebp)
+	pushl -8(%ebp)
+	pushl -4(%ebp)
+	pushl $msg_resp
+	call printf
+	addl $16, %esp
+
+	addl $16, %esp
+	popl %ebp
+	ret
+
+_det_zero:
+	pushl $msg_zero
+	call printf
+	addl $20, %esp
 	popl %ebp
 	ret
 
